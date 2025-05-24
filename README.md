@@ -3,25 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <title>Shipment Management Form - README</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 30px;
-      line-height: 1.6;
-      max-width: 800px;
-    }
-    h1, h2 {
-      color: #2c3e50;
-    }
-    ul {
-      margin-top: 0;
-    }
-    code {
-      background-color: #f4f4f4;
-      padding: 2px 5px;
-      font-family: monospace;
-    }
-  </style>
+ 
 </head>
 <body>
   <h1>Shipment Management Form</h1>
