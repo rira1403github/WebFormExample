@@ -1,323 +1,202 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Shipment Management Form</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="stylesheet"
-        href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
-</head>
-<body>
-<div class="container">
-  <h2>Shipment Management Form</h2>
-  <form id="shipmentForm">
-    <div class="form-group">
-      <label for="shipmentNo">Shipment No. (Primary Key):</label>
-      <input type="text" class="form-control" id="shipmentNo" placeholder="Enter Shipment No." required>
-    </div>
-    <div class="form-group">
-      <label for="description">Description:</label>
-      <input type="text" class="form-control" id="description" disabled>
-    </div>
-    <div class="form-group">
-      <label for="source">Source:</label>
-      <input type="text" class="form-control" id="source" disabled>
-    </div>
-    <div class="form-group">
-      <label for="destination">Destination:</label>
-      <input type="text" class="form-control" id="destination" disabled>
-    </div>
-    <div class="form-group">
-      <label for="shippingDate">Shipping Date:</label>
-      <input type="date" class="form-control" id="shippingDate" disabled>
-    </div>
-    <div class="form-group">
-      <label for="expectedDeliveryDate">Expected Delivery Date:</label>
-      <input type="date" class="form-control" id="expectedDeliveryDate" disabled>
-    </div>
-    <input type="button" class="btn btn-primary" id="saveBtn" value="Save" onclick="saveShipment()" disabled>
-    <input type="button" class="btn btn-success" id="updateBtn" value="Update" onclick="updateShipment()" disabled>
-    <input type="button" class="btn btn-warning" id="resetBtn" value="Reset" onclick="resetForm()" disabled>
-  </form>
-</div>
-
-<script>
-  const CONN_TOKEN = "90934621|-31949212475053859|90956345";
-  const DB_NAME = "SHIP-DB";
-  const REL_NAME = "SHIPMENT-rel";
-  const BASE_URL = "http://api.login2explore.com:5577";
-  const IM_URL = "/api/iml";
-  const IR_URL = "/api/irl";
-  const GET_URL = BASE_URL + IR_URL;
-  const PUT_URL = BASE_URL + IM_URL;
-
-  // Function to create database if it doesn't exist
-  function createDatabase() {
-    console.log("Attempting to create database...");
-    const createDBPayload = {
-      token: CONN_TOKEN,
-      dbName: DB_NAME,
-      cmd: "CREATE_DB"
-    };
-
-    jQuery.ajaxSetup({ async: false });
-    $.post(PUT_URL, JSON.stringify(createDBPayload))
-      .done(function(res) {
-        console.log("Create database response:", res);
-        if (res.status === 200) {
-          console.log("Database created successfully");
-          alert("Database " + DB_NAME + " created successfully!");
-          // After database is created, proceed to check relation
-          verifyRelation();
-        } else {
-          console.error("Failed to create database:", res);
-          alert("Failed to create database. Status: " + res.status + "\nMessage: " + (res.message || "Unknown error"));
-        }
-      })
-      .fail(function(err) {
-        console.error("Error creating database:", err);
-        alert("Error creating database. Please check your connection token and network connection.");
-      });
-    jQuery.ajaxSetup({ async: true });
-  }
-
-  // Function to check if database exists
-  function checkDatabase() {
-    const checkDBPayload = {
-      token: CONN_TOKEN,
-      dbName: DB_NAME,
-      cmd: "GET_DB_INFO"
-    };
-
-    console.log("Checking database existence...");
-    jQuery.ajaxSetup({ async: false });
-    $.post(GET_URL, JSON.stringify(checkDBPayload))
-      .done(function(res) {
-        console.log("Database check response:", res);
-        if (res.status === 200) {
-          console.log("Database exists, proceeding to check relation...");
-          verifyRelation();
-        } else {
-          console.log("Database does not exist, attempting to create...");
-          createDatabase(); // Create database if it doesn't exist
-        }
-      })
-      .fail(function(err) {
-        console.error("Error checking database:", err);
-        alert("Error connecting to JSONPowerDB. Please check your connection token and network connection.");
-      });
-    jQuery.ajaxSetup({ async: true });
-  }
-
-  function createRelationIfNotExists() {
-    console.log("Starting relation creation process...");
-    console.log("Using connection token:", CONN_TOKEN);
-    console.log("Database name:", DB_NAME);
-    console.log("Relation name:", REL_NAME);
-
-    const createPayload = {
-      token: CONN_TOKEN,
-      dbName: DB_NAME,
-      rel: REL_NAME,
-      cmd: "CREATE",
-      schema: {
-        "Shipment-No.": "string",
-        "Description": "string",
-        "Source": "string",
-        "Destination": "string",
-        "Shipping-Date": "date",
-        "Expected-Delivery-Date": "date"
-      },
-      primaryKey: "Shipment-No."
-    };
-
-    console.log("Sending create relation request with payload:", createPayload);
-    jQuery.ajaxSetup({ async: false });
-    $.post(PUT_URL, JSON.stringify(createPayload))
-      .done(function(res) {
-        console.log("Create relation response:", res);
-        if (res.status === 200) {
-          console.log("Relation created successfully");
-          alert("Database relation created successfully!");
-          // Verify the relation was created
-          verifyRelation();
-        } else {
-          console.error("Failed to create relation:", res);
-          alert("Failed to create relation. Status: " + res.status + "\nMessage: " + (res.message || "Unknown error"));
-        }
-      })
-      .fail(function(err) {
-        console.error("Error creating relation:", err);
-        alert("Error creating database relation. Please check console for details.");
-      });
-    jQuery.ajaxSetup({ async: true });
-  }
-
-  function verifyRelation() {
-    console.log("Verifying relation existence...");
-    const verifyPayload = {
-      token: CONN_TOKEN,
-      dbName: DB_NAME,
-      rel: REL_NAME,
-      cmd: "GET_SCHEMA"
-    };
-
-    jQuery.ajaxSetup({ async: false });
-    $.post(GET_URL, JSON.stringify(verifyPayload))
-      .done(function(res) {
-        console.log("Verify relation response:", res);
-        if (res.status === 200) {
-          console.log("Relation exists and is accessible");
-          alert("Relation " + REL_NAME + " exists and is ready to use!");
-        } else {
-          console.log("Relation does not exist, attempting to create...");
-          createRelationIfNotExists();
-        }
-      })
-      .fail(function(err) {
-        console.error("Error verifying relation:", err);
-        createRelationIfNotExists();
-      });
-    jQuery.ajaxSetup({ async: true });
-  }
-
-  function resetForm() {
-    $("#shipmentForm")[0].reset();
-    $("#shipmentNo").prop("disabled", false).focus();
-    $("#description, #source, #destination, #shippingDate, #expectedDeliveryDate").prop("disabled", true);
-    $("#saveBtn, #updateBtn, #resetBtn").prop("disabled", true);
-  }
-
-  function validateFormData() {
-    const shipmentNo = $("#shipmentNo").val().trim();
-    const description = $("#description").val().trim();
-    const source = $("#source").val().trim();
-    const destination = $("#destination").val().trim();
-    const shippingDate = $("#shippingDate").val();
-    const expectedDeliveryDate = $("#expectedDeliveryDate").val();
-
-    if (!shipmentNo || !description || !source || !destination || !shippingDate || !expectedDeliveryDate) {
-      alert("All fields are required!");
-      return null;
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Welcome Princess</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
     }
 
-    return {
-      "Shipment-No.": shipmentNo,
-      "Description": description,
-      "Source": source,
-      "Destination": destination,
-      "Shipping-Date": shippingDate,
-      "Expected-Delivery-Date": expectedDeliveryDate
-    };
-  }
+    body, html {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      font-family: 'Segoe UI', sans-serif;
+    }
 
-  function enableFields() {
-    $("#description, #source, #destination, #shippingDate, #expectedDeliveryDate").prop("disabled", false);
-    $("#resetBtn").prop("disabled", false);
-  }
+    /* Background image */
+    .background {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: url('unicorn5.avif') no-repeat center center/cover;
+      z-index: -1;
+      filter: brightness(0.75);
+    }
 
-  function checkShipmentNo() {
-    const shipmentNo = $("#shipmentNo").val().trim();
-    if (!shipmentNo) return;
+    /* Welcome Text */
+    /* .welcome-text {
+      position: absolute;
+      top: 30%;
+      width: 100%;
+      text-align: center;
+      color: #fff;
+      font-size: 3em;
+      font-weight: bold;
+      text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.7);
+      animation: fadeInDrop 3s ease-in-out forwards;
+      opacity: 0;
+    } */
+      .welcome-text {
+      position: absolute;
+      top: 30%;
+      width: 100%;
+      text-align: center;
+      color: #fff;
+      font-size: 3em;
+      font-weight: bold;
+      font-family: 'Dancing Script', cursive; /* 🌟 Font changed here */
+      text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.7);
+      animation: fadeInDrop 3s ease-in-out forwards;
+      opacity: 0;
+    }
 
-    const getRequest = {
-      token: CONN_TOKEN,
-      dbName: DB_NAME,
-      rel: REL_NAME,
-      cmd: "GET_BY_KEY",
-      jsonStr: JSON.stringify({ "Shipment-No.": shipmentNo })
-    };
-
-    jQuery.ajaxSetup({ async: false });
-    $.post(GET_URL, JSON.stringify(getRequest), function (result) {
-      if (!result.data) {
-        enableFields();
-        $("#saveBtn").prop("disabled", false);
-        $("#shipmentNo").prop("disabled", true);
-        $("#description").focus();
-      } else {
-        const record = result.data.record;
-        $("#description").val(record.Description);
-        $("#source").val(record.Source);
-        $("#destination").val(record.Destination);
-        $("#shippingDate").val(record["Shipping-Date"]);
-        $("#expectedDeliveryDate").val(record["Expected-Delivery-Date"]);
-
-        enableFields();
-        $("#updateBtn").prop("disabled", false);
-        $("#shipmentNo").prop("disabled", true);
-        $("#description").focus();
+    @keyframes fadeInDrop {
+      0% {
+        opacity: 0;
+        transform: translateY(-50px) scale(0.8);
       }
-    }).fail(() => {
-      alert("Error checking Shipment No.");
-    });
-    jQuery.ajaxSetup({ async: true });
-  }
-
-  function saveShipment() {
-    const data = validateFormData();
-    if (!data) return;
-
-    const putRequest = {
-      token: CONN_TOKEN,
-      dbName: DB_NAME,
-      rel: REL_NAME,
-      cmd: "PUT",
-      jsonStr: JSON.stringify(data)
-    };
-
-    jQuery.ajaxSetup({ async: false });
-    $.post(PUT_URL, JSON.stringify(putRequest), function (result) {
-      alert("Shipment saved successfully!");
-      resetForm();
-    }).fail(() => {
-      alert("Error saving shipment.");
-    });
-    jQuery.ajaxSetup({ async: true });
-  }
-
-  function updateShipment() {
-    const data = validateFormData();
-    if (!data) return;
-
-    const updateRequest = {
-      token: CONN_TOKEN,
-      dbName: DB_NAME,
-      rel: REL_NAME,
-      cmd: "UPDATE",
-      jsonStr: JSON.stringify(data)
-    };
-
-    jQuery.ajaxSetup({ async: false });
-    $.post(PUT_URL, JSON.stringify(updateRequest), function (result) {
-      alert("Shipment updated successfully!");
-      resetForm();
-    }).fail(() => {
-      alert("Error updating shipment.");
-    });
-    jQuery.ajaxSetup({ async: true });
-  }
-
-  $(document).ready(function () {
-    console.log("Document ready, initializing application...");
-    console.log("Using connection token:", CONN_TOKEN);
-    console.log("Database name:", DB_NAME);
-    console.log("Relation name:", REL_NAME);
-    checkDatabase();  // Start with database check
-    $("#shipmentNo").focus();
-
-    $("#shipmentNo").on("blur", function () {
-      checkShipmentNo();
-    });
-
-    $("#shipmentNo").on("keypress", function (e) {
-      if (e.which === 13) {
-        checkShipmentNo();
+      100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
       }
-    });
-  });
-</script>
+    }
+
+    /* Butterfly animation */
+    .butterfly {
+      position: absolute;
+      width: 50px;
+      pointer-events: none;
+      animation: fly 15s linear infinite;
+      opacity: 0;
+    }
+
+    .butterfly:nth-child(1) { top: 10%; left: -60px; animation-delay: 0s; }
+    .butterfly:nth-child(2) { top: 30%; left: -60px; animation-delay: 3s; }
+    .butterfly:nth-child(3) { top: 50%; left: -60px; animation-delay: 6s; }
+    .butterfly:nth-child(4) { top: 70%; left: -60px; animation-delay: 9s; }
+    .butterfly:nth-child(5) { top: 85%; left: -60px; animation-delay: 12s; }
+    .butterfly:nth-child(6) { top: 20%; left: -60px; animation-delay: 15s; }
+
+    @keyframes fly {
+      0% {
+        transform: translateX(0) rotate(0deg) scale(1);
+        opacity: 0;
+      }
+      10% {
+        opacity: 1;
+      }
+      50% {
+        transform: translateX(50vw) translateY(-30vh) rotate(360deg) scale(1.2);
+      }
+      100% {
+        transform: translateX(100vw) rotate(720deg) scale(0.9);
+        opacity: 0;
+      }
+    }
+
+    /* Decorative floating sparkles */
+    .glow-circle {
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.4);
+      animation: floatCircle 6s ease-in-out infinite;
+      filter: blur(4px);
+    }
+
+    .glow-circle:nth-child(1) { top: 80%; left: 20%; animation-delay: 1s; }
+    .glow-circle:nth-child(2) { top: 60%; left: 50%; animation-delay: 3s; }
+    .glow-circle:nth-child(3) { top: 90%; left: 70%; animation-delay: 5s; }
+
+    @keyframes floatCircle {
+      0% { transform: translateY(0) scale(1); opacity: 0.8; }
+      50% { transform: translateY(-20px) scale(1.2); opacity: 1; }
+      100% { transform: translateY(0) scale(1); opacity: 0.8; }
+    }
+
+    /* Cloud button */
+    .cloud-button {
+      position: absolute;
+      bottom: 50px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 20px 40px;
+      background: linear-gradient(135deg, #ffb6e6, #c084fc); /* 🌈 Gradient background */
+      color: #fff;
+      font-size: 1.5em;
+      font-weight: bold;
+      border: none;
+      border-radius: 60px;
+      box-shadow: 0 0 30px rgba(255, 182, 230, 0.6), 0 8px 15px rgba(0, 0, 0, 0.2);
+      cursor: pointer;
+      transition: all 10s ease-in-out;
+      animation: floatButton 4s ease-in-out infinite;
+    }
+
+    .cloud-button:hover {
+      background: #f9f9f9;
+      color: #333;
+      box-shadow: 0 0 50px rgba(255, 255, 255, 0.7), 0 10px 20px rgba(0, 0, 0, 0.25);
+      transform: translateX(-50%) scale(1.05);
+    }
+
+    @keyframes floatButton {
+      0%, 100% {
+        transform: translateX(-50%) translateY(0);
+      }
+      50% {
+        transform: translateX(-50%) translateY(-10px);
+      }
+    }
+
+  </style>
+</head>
+<body>
+
+  <div class="background"></div>
+
+  <div class="welcome-text">🌸 Welcome to your World Princess 🌸</div>
+
+  <!-- Butterflies -->
+  <img src="butterfly.jpg" class="butterfly" />
+  <img src="butterfly.jpg" class="butterfly" />
+  <img src="butterfly.jpg" class="butterfly" />
+  <img src="butterfly.jpg" class="butterfly" />
+  <img src="butterfly.jpg" class="butterfly" />
+  <img src="butterfly.jpg" class="butterfly" />
+  <img src="butterfly.jpg" class="butterfly" />
+  <img src="butterfly.jpg" class="butterfly" />
+  <img src="butterfly.jpg" class="butterfly" />
+  <img src="butterfly.jpg" class="butterfly" />
+ <img src="butterfly.jpg" class="butterfly" />
+  <img src="butterfly.jpg" class="butterfly" />
+  <img src="butterfly.jpg" class="butterfly" />
+  <img src="butterfly.jpg" class="butterfly" />
+  <img src="butterfly.jpg" class="butterfly" />
+  <img src="butterfly.jpg" class="butterfly" />
+  <img src="butterfly.jpg" class="butterfly" />
+
+  <!-- Floating sparkles -->
+  <div class="glow-circle"></div>
+  <div class="glow-circle"></div>
+  <div class="glow-circle"></div>
+   <div class="glow-circle"></div>
+  <div class="glow-circle"></div>
+  <div class="glow-circle"></div>
+
+  <!-- Cloud-shaped button -->
+  <!-- <button class="cloud-button" src="second.html">☁️ Touch me Princess ☁️</button> -->
+   <a href="second.html">
+  <button class="cloud-button">☁️ Touch me Princess ☁️</button>
+</a>
+
 </body>
 </html>

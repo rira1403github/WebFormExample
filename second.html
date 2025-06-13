@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Heart Path Text</title>
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      overflow: hidden;
+      background: url('unicorn 2.avif') no-repeat center center/cover;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    .heart-text {
+      position: absolute;
+      top: 40%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 100%;
+      height: auto;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      pointer-events: none;
+    }
+
+    .letter {
+      position: absolute;
+      font-size: 24px;
+      font-weight: bold;
+      color: #fff;
+      text-shadow: 1px 1px 5px #f03f9c;
+      animation: floatHeart 10s linear infinite;
+    }
+
+    @keyframes floatHeart {
+      0%   { transform: translate(0px, 0px); opacity: 0; }
+      10%  { opacity: 1; }
+      100% {
+        transform: translate(
+          calc(150px * (16 * Math.pow(Math.sin(var(--t)), 3))),
+          calc(-150px * (13 * Math.cos(var(--t)) - 5 * Math.cos(2*var(--t)) - 2 * Math.cos(3*var(--t)) - Math.cos(4*var(--t))))
+        );
+        opacity: 0;
+      }
+    }
+
+    /* Floating hearts */
+    .emoji-heart {
+      position: absolute;
+      font-size: 24px;
+      animation: floatUp 6s infinite ease-in-out;
+      pointer-events: none;
+    }
+
+    @keyframes floatUp {
+      0% {
+        transform: translateY(0) scale(1);
+        opacity: 0;
+      }
+      20% { opacity: 1; }
+      100% {
+        transform: translateY(-100vh) scale(1.5);
+        opacity: 0;
+      }
+    }
+
+    /* Heart-shaped button */
+    .heart-button {
+      position: absolute;
+      bottom: 40px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 20px 30px;
+      font-size: 18px;
+      color: white;
+      text-align: center;
+      text-decoration: none;
+      border: none;
+      border-radius: 50% 50% 40% 40% / 60% 60% 40% 40%;
+      background: radial-gradient(circle at 30% 30%, #ff4b7d, #ff0066);
+      box-shadow: 0 0 15px rgba(255, 0, 128, 0.6);
+      animation: pulse 2s infinite, float 3s ease-in-out infinite;
+      z-index: 10;
+    }
+
+    @keyframes pulse {
+      0% { box-shadow: 0 0 10px #ff1493; }
+      50% { box-shadow: 0 0 25px #ff69b4; }
+      100% { box-shadow: 0 0 10px #ff1493; }
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translate(-50%, 0); }
+      50% { transform: translate(-50%, -10px); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Heart text -->
+  <div class="heart-text" id="heartText"></div>
+
+  <!-- Floating hearts -->
+  <script>
+    const heartText = document.getElementById('heartText');
+    const message = "I will let you go to your complaint box ❤️";
+    for (let i = 0; i < message.length; i++) {
+      const span = document.createElement('span');
+      span.classList.add('letter');
+      span.textContent = message[i];
+      span.style.animationDelay = `${i * 0.2}s`;
+      heartText.appendChild(span);
+    }
+
+    // Floating heart emojis
+    for (let i = 0; i < 30; i++) {
+      const heart = document.createElement('div');
+      heart.classList.add('emoji-heart');
+      heart.textContent = '💖';
+      heart.style.left = Math.random() * 100 + 'vw';
+      heart.style.bottom = '-' + (Math.random() * 100) + 'px';
+      heart.style.animationDelay = Math.random() * 5 + 's';
+      heart.style.fontSize = `${Math.random() * 10 + 20}px`;
+      document.body.appendChild(heart);
+    }
+  </script>
+
+  <!-- Heart-shaped button -->
+  <a href="form.html" class="heart-button">Touch me <br>Princess</a>
+
+</body>
+</html>

@@ -1,0 +1,525 @@
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Aransha's Heart Portal 💝</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: url('unicorn9.jpeg') no-repeat center center fixed;
+      background-size: cover;
+      overflow-x: hidden;
+    }
+
+    .container {
+      position: absolute;
+      top: 50%;
+      right: 5%;
+      transform: translateY(-50%);
+      width: 400px;
+      padding: 30px;
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 50% 50% 40% 40% / 60% 60% 40% 40%;
+      border: 5px solid #ffb6c1;
+      box-shadow: 0 0 40px rgba(255, 105, 180, 0.5);
+      text-align: center;
+    }
+
+    h2 {
+      color: #ff69b4;
+      font-family: 'Comic Sans MS', cursive;
+      font-weight: bold;
+    }
+
+    .form-control {
+      border-radius: 10px;
+    }
+
+    .btn-primary {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      background-color: #ff69b4;
+      border: none;
+      font-weight: bold;
+      font-size: 16px;
+    }
+
+    .emoji-heart {
+      position: fixed;
+      font-size: 24px;
+      pointer-events: none;
+      animation: floatEmoji 4s linear infinite;
+      opacity: 0;
+    }
+
+    @keyframes floatEmoji {
+      0% {
+        transform: translateY(0) rotate(0deg);
+        opacity: 0;
+      }
+      10% {
+        opacity: 1;
+      }
+      90% {
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(-150px) rotate(360deg);
+        opacity: 0;
+      }
+    }
+
+    .complaint-box {
+      min-height: 200px;
+      font-size: 16px;
+      line-height: 1.6;
+      padding: 15px;
+      border: 2px solid #ffd3d3;
+      border-radius: 15px;
+      background: rgba(255, 255, 255, 0.95);
+      box-shadow: 0 2px 10px rgba(255, 182, 193, 0.1);
+    }
+
+    .complaint-box:focus {
+      box-shadow: 0 0 15px rgba(255, 107, 107, 0.3);
+      border-color: #ff6b6b;
+      transform: translateY(-2px);
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="floating-hearts" id="hearts"></div>
+
+<div class="container">
+  <h2>Aransha's Portal 💝</h2>
+  <form id="empForm" method="post">
+    <div class="form-group">
+      <label for="empId">💖 COMPLAINT ID:</label>
+      <input type="text" class="form-control" name="empId" id="empId"
+             placeholder="💌 Enter Complaint ID" required>
+    </div>
+    <div class="form-group">
+      <label for="empName">💗 Complaint Type:</label>
+      <input type="text" class="form-control" id="empName"
+             placeholder="💭 Enter Complaint Type" name="empName">
+    </div>
+    <div class="form-group">
+      <label for="empEmail">💕 USE ME:</label>
+      <textarea class="form-control complaint-box" id="empEmail"
+                placeholder="💝 You can type your complaint here" name="empEmail"
+                rows="8" style="resize: vertical;"></textarea>
+    </div>
+    <input type="button" class="btn btn-primary" id="empSave" value="💖 Share Your Feelings to him 💖"
+           onclick="saveEmployee();">
+  </form>
+</div>
+
+<script>
+  $("#empId").focus();
+
+  function createEmojiHearts() {
+    const emojis = ['💖', '💗', '💓', '💕', '💝', '💘', '💞'];
+    const emoji = document.createElement('div');
+    emoji.className = 'emoji-heart';
+    emoji.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+    emoji.style.left = Math.random() * 100 + 'vw';
+    emoji.style.top = Math.random() * 100 + 'vh';
+    emoji.style.animationDuration = (Math.random() * 2 + 2) + 's';
+    document.body.appendChild(emoji);
+    
+    setTimeout(() => emoji.remove(), 4000);
+  }
+
+  setInterval(createEmojiHearts, 500);
+
+  function validateAndGetFormData() {
+    var empIdVar = $("#empId").val();
+    if (empIdVar === "") {
+      alert("Employee ID Required");
+      $("#empId").focus();
+      return "";
+    }
+    var empNameVar = $("#empName").val();
+    if (empNameVar === "") {
+      alert("Complaint Type Required");
+      $("#empName").focus();
+      return "";
+    }
+    var empEmailVar = $("#empEmail").val();
+    if (empEmailVar === "") {
+      alert("Complaint Text Required");
+      $("#empEmail").focus();
+      return "";
+    }
+    return JSON.stringify({
+      empId: empIdVar,
+      empName: empNameVar,
+      empEmail: empEmailVar
+    });
+  }
+
+  function createPUTRequest(connToken, jsonObj, dbName, relName) {
+    return `{
+      "token": "${connToken}",
+      "dbName": "${dbName}",
+      "cmd": "PUT",
+      "rel": "${relName}",
+      "jsonStr": ${jsonObj}
+    }`;
+  }
+
+  function executeCommand(reqString, dbBaseUrl, apiEndPointUrl) {
+    var url = dbBaseUrl + apiEndPointUrl;
+    var jsonObj;
+    $.post(url, reqString, function (result) {
+      jsonObj = JSON.parse(result);
+    }).fail(function (result) {
+      jsonObj = JSON.parse(result.responseText);
+    });
+    return jsonObj;
+  }
+
+  function resetForm() {
+    $("#empId").val("");
+    $("#empName").val("");
+    $("#empEmail").val("");
+    $("#empId").focus();
+  }
+
+  function saveEmployee() {
+    var jsonStr = validateAndGetFormData();
+    if (jsonStr === "") return;
+
+    var putReqStr = createPUTRequest(
+      "90934621|-31949212475053859|90956345",
+      jsonStr,
+      "SAMPLE",
+      "EMP-REL"
+    );
+
+    jQuery.ajaxSetup({ async: false });
+
+    var resultObj = executeCommand(
+      putReqStr,
+      "http://api.login2explore.com:5577",
+      "/api/iml"
+    );
+
+    jQuery.ajaxSetup({ async: true });
+
+    if (resultObj.status === 200) {
+      window.location.href = "uni.html";
+    } else {
+      alert("Error saving employee data. Please try again.");
+    }
+
+    resetForm();
+  }
+</script>
+
+</body>
+</html> -->
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Aransha's Heart Portal 💝</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: url('unicorn9.jpeg') no-repeat center center fixed;
+      background-size: cover;
+      overflow-x: hidden;
+    }
+
+    .container {
+      position: absolute;
+      top: 50%;
+      right: 5%;
+      transform: translateY(-50%);
+      width: 400px;
+      padding: 30px;
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 50% 50% 40% 40% / 60% 60% 40% 40%;
+      border: 5px solid #ffb6c1;
+      box-shadow: 0 0 40px rgba(255, 105, 180, 0.5);
+      text-align: center;
+    }
+
+    h2 {
+      color: #ff69b4;
+      font-family: 'Comic Sans MS', cursive;
+      font-weight: bold;
+    }
+
+    .form-control {
+      border-radius: 10px;
+    }
+
+    .btn-primary {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      background-color: #ff69b4;
+      border: none;
+      font-weight: bold;
+      font-size: 16px;
+    }
+
+    .emoji-section {
+      position: relative;
+      display: inline-block;
+    }
+
+    .emoji-btn {
+      margin-left: 10px;
+      padding: 10px 12px;
+      background-color: #fff3f8;
+      border: 2px solid #ffb6c1;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 18px;
+      transition: 0.3s ease;
+    }
+
+    .emoji-btn:hover {
+      background-color: #ffe6ee;
+    }
+
+    .emoji-list {
+      display: none;
+      position: absolute;
+      bottom: 45px;
+      left: 0;
+      background: #fff;
+      border: 2px solid #ffb6c1;
+      border-radius: 10px;
+      padding: 10px;
+      max-height: 150px;
+      overflow-y: auto;
+      white-space: wrap;
+      box-shadow: 0 5px 10px rgba(255, 182, 193, 0.4);
+      z-index: 999;
+    }
+
+    .emoji-list span {
+      font-size: 22px;
+      padding: 5px;
+      cursor: pointer;
+      display: inline-block;
+    }
+
+    .emoji-heart {
+      position: fixed;
+      font-size: 24px;
+      pointer-events: none;
+      animation: floatEmoji 4s linear infinite;
+      opacity: 0;
+    }
+
+    @keyframes floatEmoji {
+      0% { transform: translateY(0) rotate(0deg); opacity: 0; }
+      10% { opacity: 1; }
+      90% { opacity: 1; }
+      100% { transform: translateY(-150px) rotate(360deg); opacity: 0; }
+    }
+
+    .complaint-box {
+      min-height: 200px;
+      font-size: 16px;
+      line-height: 1.6;
+      padding: 15px;
+      border: 2px solid #ffd3d3;
+      border-radius: 15px;
+      background: rgba(255, 255, 255, 0.95);
+      box-shadow: 0 2px 10px rgba(255, 182, 193, 0.1);
+    }
+
+    .complaint-box:focus {
+      box-shadow: 0 0 15px rgba(255, 107, 107, 0.3);
+      border-color: #ff6b6b;
+      transform: translateY(-2px);
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="floating-hearts" id="hearts"></div>
+
+<div class="container">
+  <h2>Aransha's Portal 💝</h2>
+  <form id="empForm" method="post">
+    <div class="form-group">
+      <label for="empId">💖 COMPLAINT ID:</label>
+      <input type="text" class="form-control" name="empId" id="empId"
+             placeholder="💌 Enter Complaint ID" required>
+    </div>
+    <div class="form-group">
+      <label for="empName">💗 Complaint Type:</label>
+      <input type="text" class="form-control" id="empName"
+             placeholder="💭 Enter Complaint Type" name="empName">
+    </div>
+    <div class="form-group">
+      <label for="empEmail">💕 USE ME:</label>
+      <textarea class="form-control complaint-box" id="empEmail"
+                placeholder="💝 You can type your complaint here" name="empEmail"
+                rows="8" style="resize: vertical;"></textarea>
+    </div>
+
+    <div style="display: flex; justify-content: center; align-items: center; gap: 10px;">
+      <input type="button" class="btn btn-primary" id="empSave" value="💖 Share Your Feelings to him 💖"
+             onclick="saveEmployee();">
+      <div class="emoji-section">
+        <button type="button" class="emoji-btn" onclick="toggleEmojiList()">😊</button>
+        <div class="emoji-list" id="emojiList">
+          <span>💖</span><span>💗</span><span>💓</span><span>💕</span><span>💝</span><span>💘</span>
+          <span>💞</span><span>❤️</span><span>😍</span><span>😘</span><span>🥰</span><span>😻</span>
+          <span>😚</span><span>🌸</span><span>🌹</span><span>✨</span><span>🎀</span><span>💌</span>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>
+
+<script>
+  $("#empId").focus();
+
+  function createEmojiHearts() {
+    const emojis = ['💖', '💗', '💓', '💕', '💝', '💘', '💞'];
+    const emoji = document.createElement('div');
+    emoji.className = 'emoji-heart';
+    emoji.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+    emoji.style.left = Math.random() * 100 + 'vw';
+    emoji.style.top = Math.random() * 100 + 'vh';
+    emoji.style.animationDuration = (Math.random() * 2 + 2) + 's';
+    document.body.appendChild(emoji);
+    setTimeout(() => emoji.remove(), 4000);
+  }
+
+  setInterval(createEmojiHearts, 500);
+
+  function validateAndGetFormData() {
+    var empIdVar = $("#empId").val();
+    if (empIdVar === "") {
+      alert("Employee ID Required");
+      $("#empId").focus();
+      return "";
+    }
+    var empNameVar = $("#empName").val();
+    if (empNameVar === "") {
+      alert("Complaint Type Required");
+      $("#empName").focus();
+      return "";
+    }
+    var empEmailVar = $("#empEmail").val();
+    if (empEmailVar === "") {
+      alert("Complaint Text Required");
+      $("#empEmail").focus();
+      return "";
+    }
+    return JSON.stringify({
+      empId: empIdVar,
+      empName: empNameVar,
+      empEmail: empEmailVar
+    });
+  }
+
+  function createPUTRequest(connToken, jsonObj, dbName, relName) {
+    return `{
+      "token": "${connToken}",
+      "dbName": "${dbName}",
+      "cmd": "PUT",
+      "rel": "${relName}",
+      "jsonStr": ${jsonObj}
+    }`;
+  }
+
+  function executeCommand(reqString, dbBaseUrl, apiEndPointUrl) {
+    var url = dbBaseUrl + apiEndPointUrl;
+    var jsonObj;
+    $.post(url, reqString, function (result) {
+      jsonObj = JSON.parse(result);
+    }).fail(function (result) {
+      jsonObj = JSON.parse(result.responseText);
+    });
+    return jsonObj;
+  }
+
+  function resetForm() {
+    $("#empId").val("");
+    $("#empName").val("");
+    $("#empEmail").val("");
+    $("#empId").focus();
+  }
+
+  function saveEmployee() {
+    var jsonStr = validateAndGetFormData();
+    if (jsonStr === "") return;
+
+    var putReqStr = createPUTRequest(
+      "90934621|-31949212475053859|90956345",
+      jsonStr,
+      "SAMPLE",
+      "EMP-REL"
+    );
+
+    jQuery.ajaxSetup({ async: false });
+
+    var resultObj = executeCommand(
+      putReqStr,
+      "http://api.login2explore.com:5577",
+      "/api/iml"
+    );
+
+    jQuery.ajaxSetup({ async: true });
+
+    if (resultObj.status === 200) {
+      window.location.href = "uni.html";
+    } else {
+      alert("Error saving employee data. Please try again.");
+    }
+
+    resetForm();
+  }
+
+  function toggleEmojiList() {
+    const emojiList = document.getElementById("emojiList");
+    emojiList.style.display = emojiList.style.display === "block" ? "none" : "block";
+  }
+
+  document.addEventListener('click', function(event) {
+    const emojiBtn = document.querySelector('.emoji-btn');
+    const emojiList = document.getElementById("emojiList");
+    if (!emojiBtn.contains(event.target) && !emojiList.contains(event.target)) {
+      emojiList.style.display = 'none';
+    }
+  });
+
+  document.querySelectorAll('#emojiList span').forEach(emoji => {
+    emoji.addEventListener('click', function() {
+      const textarea = document.getElementById("empEmail");
+      textarea.value += this.textContent;
+    });
+  });
+</script>
+
+</body>
+</html>

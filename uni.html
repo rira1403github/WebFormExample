@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Princess Message</title>
+  <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Quicksand:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      overflow: hidden;
+      font-family: 'Quicksand', sans-serif;
+      background: url('unicorn3.avif') no-repeat center center/cover;
+    }
+
+    canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 0;
+    }
+
+    .message {
+      position: absolute;
+      top: 35%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 80%;
+      color: #fff;
+      text-align: center;
+      z-index: 2;
+      animation: fadeIn 3s ease-in-out forwards;
+      opacity: 0;
+    }
+
+    .message h1 {
+      font-family: 'Great Vibes', cursive;
+      font-size: 3.2em;
+      margin-bottom: 20px;
+      color: #ffb6f2;
+      text-shadow: 0 0 10px #ff6ec4, 0 0 20px #f953c6;
+    }
+
+    .message p {
+      font-size: 1.5em;
+      line-height: 1.6;
+      padding: 0 10px;
+      color: #fffbe7;
+      text-shadow: 1px 1px 8px #000;
+    }
+
+    @keyframes fadeIn {
+      0% {
+        opacity: 0;
+        transform: translate(-50%, 40px);
+      }
+      100% {
+        opacity: 1;
+        transform: translate(-50%, 0);
+      }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="canvas"></canvas>
+
+  <div class="message">
+    <h1>Dear Princess, please hold on a little longer...</h1>
+    <p>✨ Your royal wishes have been heard.<br>
+    🌈 We’re gently weaving magic behind the scenes to make everything perfect for you.<br>
+    💖 Thank you for your grace and patience — your happiness means the world to us!</p>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    function random(min, max) {
+      return Math.random() * (max - min) + min;
+    }
+
+    let fireworks = [];
+
+    function createFirework() {
+      let x = random(100, canvas.width - 100);
+      let y = random(100, canvas.height / 2);
+      let colors = ['#ff4b1f', '#1fddff', '#00ff87', '#f9f871', '#f953c6'];
+      let color = colors[Math.floor(Math.random() * colors.length)];
+      let particles = [];
+
+      for (let i = 0; i < 50; i++) {
+        let angle = (Math.PI * 2) * (i / 50);
+        let speed = random(2, 6);
+        particles.push({
+          x: x,
+          y: y,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          alpha: 1,
+          color: color
+        });
+      }
+
+      fireworks.push(particles);
+    }
+
+    function animate() {
+      requestAnimationFrame(animate);
+      ctx.fillStyle = "rgba(0, 0, 0, 0.2)";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      fireworks.forEach((particles, index) => {
+        particles.forEach(p => {
+          p.x += p.vx;
+          p.y += p.vy;
+          p.alpha -= 0.015;
+
+          ctx.globalAlpha = p.alpha;
+          ctx.fillStyle = p.color;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
+          ctx.fill();
+        });
+
+        if (particles[0].alpha <= 0) {
+          fireworks.splice(index, 1);
+        }
+      });
+    }
+
+    setInterval(createFirework, 1000);
+    animate();
+  </script>
+</body>
+</html>
